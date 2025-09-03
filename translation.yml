@@ -1,0 +1,40 @@
+source_language: en
+target_languages:
+  [
+    bg,
+    cs,
+    da,
+    de,
+    el,
+    es,
+    fi,
+    fr,
+    hi,
+    hu,
+    id,
+    it,
+    ja,
+    ko,
+    lt,
+    nb,
+    nl,
+    pl,
+    pt-BR,
+    pt-PT,
+    ro,
+    ru,
+    sv,
+    th,
+    tr,
+    vi,
+    zh-CN,
+    zh-TW,
+  ]
+async_pr_mode: per_pr
+components:
+  - name: 'default'
+    scheme: react
+    audience: merchant
+    owners: ['@Shopify/polaris-eng']
+    paths:
+      - polaris-react/locales/{{language}}.json
