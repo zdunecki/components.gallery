@@ -1,6 +1,6 @@
-import type {NextApiRequest, NextApiResponse} from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import Fuse from 'fuse.js';
-import {metaThemeDefault, MetaTokenProperties} from '@shopify/polaris-tokens';
+import { metaThemeDefault, MetaTokenProperties } from '@shopify/polaris-tokens';
 import iconMetadata from '@shopify/polaris-icons/metadata';
 
 import {
@@ -14,7 +14,7 @@ import {
   FrontMatter,
 } from '../../../../src/types';
 
-import {slugify, stripMarkdownLinks} from '../../../../src/utils/various';
+import { slugify, stripMarkdownLinks } from '../../../../src/utils/various';
 
 import pages from '../../../../.cache/site';
 
@@ -22,13 +22,13 @@ type IndexablePages = {
   [K in keyof typeof pages as typeof pages[K]['frontMatter'] extends {
     noIndex: true;
   }
-    ? never
-    : K]: typeof pages[K];
+  ? never
+  : K]: typeof pages[K];
 };
 
 const searchablePages = Object.fromEntries(
   Object.entries(pages).filter(
-    ([, {frontMatter}]) => !(frontMatter as FrontMatter).noIndex,
+    ([, { frontMatter }]) => !(frontMatter as FrontMatter).noIndex,
   ),
 ) as IndexablePages;
 
@@ -50,7 +50,7 @@ const foundationSlugs = Object.keys(searchablePages).filter(
     slug.startsWith('/content/'),
 ) as StartsWith<Slugs, '/foundations/' | '/design/' | '/content/'>[];
 
-const MAX_RESULTS: {[key in SearchResultCategory]: number} = {
+const MAX_RESULTS: { [key in SearchResultCategory]: number } = {
   foundations: 8,
   components: 6,
   patterns: 6,
@@ -58,164 +58,185 @@ const MAX_RESULTS: {[key in SearchResultCategory]: number} = {
   icons: 9,
 };
 
+
+const SEARCHABEL_SEO = {
+  components: false,
+  foundations: false,
+  patterns: false,
+  tokens: false,
+  icons: false,
+}
+
 const getSearchResults = (query?: string) => {
   if (query == null || query?.length === 0) return [];
 
   let results: SearchResults = [];
 
   // Add components
-  componentSlugs.forEach((slug) => {
-    const {
-      status,
-      title,
-      description = '',
-      category = '',
-      internalOnly,
-    } = searchablePages[slug].frontMatter as FrontMatter;
+  if (SEARCHABEL_SEO.components) {
+    componentSlugs.forEach((slug) => {
+      const {
+        status,
+        title,
+        description = '',
+        category = '',
+        internalOnly,
+      } = searchablePages[slug].frontMatter as FrontMatter;
 
-    const url = category
-      ? `/components/${slugify(category)}/${slugify(title)}`
-      : `/components/${slugify(title)}`;
+      const url = category
+        ? `/components/${slugify(category)}/${slugify(title)}`
+        : `/components/${slugify(title)}`;
 
-    if (internalOnly) {
-      return;
-    }
+      if (internalOnly) {
+        return;
+      }
 
-    results.push({
-      id: slugify(`components ${title}`),
-      category: 'components',
-      score: 0,
-      url,
-      meta: {
-        components: {
-          title,
-          description: stripMarkdownLinks(description),
-          status: status as Status,
-          group: slugify(category),
+      results.push({
+        id: slugify(`components ${title}`),
+        category: 'components',
+        score: 0,
+        url,
+        meta: {
+          components: {
+            title,
+            description: stripMarkdownLinks(description),
+            status: status as Status,
+            group: slugify(category),
+          },
         },
-      },
+      });
     });
-  });
+  }
 
-  const {color, border, font, motion, shadow, space, zIndex} = metaThemeDefault;
-  const tokenGroups = {
-    color,
-    border,
-    font,
-    motion,
-    shadow,
-    space,
-    zIndex,
-  };
+  if (SEARCHABEL_SEO.tokens) {
+    // Add tokens
 
-  Object.entries(tokenGroups).forEach(([groupSlug, tokenGroup]) => {
-    Object.entries(tokenGroup).forEach(
-      ([tokenName, tokenProperties]: [string, MetaTokenProperties]) => {
-        results.push({
-          id: slugify(`tokens ${tokenName}`),
-          category: 'tokens',
-          score: 0,
-          url: `/tokens/${slugify(groupSlug)}#${tokenName}`,
-          meta: {
-            tokens: {
-              category: groupSlug,
-              token: {
-                name: tokenName,
-                description: tokenProperties.description || '',
-                value: tokenProperties.value,
+    const { color, border, font, motion, shadow, space, zIndex } = metaThemeDefault;
+    const tokenGroups = {
+      color,
+      border,
+      font,
+      motion,
+      shadow,
+      space,
+      zIndex,
+    };
+
+    Object.entries(tokenGroups).forEach(([groupSlug, tokenGroup]) => {
+      Object.entries(tokenGroup).forEach(
+        ([tokenName, tokenProperties]: [string, MetaTokenProperties]) => {
+          results.push({
+            id: slugify(`tokens ${tokenName}`),
+            category: 'tokens',
+            score: 0,
+            url: `/tokens/${slugify(groupSlug)}#${tokenName}`,
+            meta: {
+              tokens: {
+                category: groupSlug,
+                token: {
+                  name: tokenName,
+                  description: tokenProperties.description || '',
+                  value: tokenProperties.value,
+                },
               },
             },
+          });
+        },
+      );
+    });
+  }
+
+  if (SEARCHABEL_SEO.icons) {
+    // Add icons
+    Object.keys(iconMetadata).forEach((fileName) => {
+      results.push({
+        id: slugify(`icons ${fileName}`),
+        category: 'icons',
+        url: `/icons?icon=${fileName}`,
+        score: 0,
+        meta: {
+          icons: {
+            icon: iconMetadata[fileName],
           },
-        });
-      },
-    );
-  });
-
-  // Add icons
-  Object.keys(iconMetadata).forEach((fileName) => {
-    results.push({
-      id: slugify(`icons ${fileName}`),
-      category: 'icons',
-      url: `/icons?icon=${fileName}`,
-      score: 0,
-      meta: {
-        icons: {
-          icon: iconMetadata[fileName],
         },
-      },
+      });
     });
-  });
+  }
 
-  // Add foundations
-  foundationSlugs.forEach((slug) => {
-    const {
-      title,
-      icon = '',
-      description = '',
-    } = searchablePages[slug].frontMatter as FrontMatter;
-    const category = slug.split('/')[1].toLowerCase() as FoundationsCategory;
+  if (SEARCHABEL_SEO.foundations) {
+    // Add foundations
+    foundationSlugs.forEach((slug) => {
+      const {
+        title,
+        icon = '',
+        description = '',
+      } = searchablePages[slug].frontMatter as FrontMatter;
+      const category = slug.split('/')[1].toLowerCase() as FoundationsCategory;
 
-    results.push({
-      id: slugify(`foundations ${title}`),
-      category: 'foundations',
-      score: 0,
-      url: slug,
-      meta: {
-        foundations: {
-          title,
-          icon,
-          description,
-          category: category || '',
+      results.push({
+        id: slugify(`foundations ${title}`),
+        category: 'foundations',
+        score: 0,
+        url: slug,
+        meta: {
+          foundations: {
+            title,
+            icon,
+            description,
+            category: category || '',
+          },
         },
-      },
+      });
     });
-  });
+  }
 
-  patternSlugs.forEach((slug) => {
-    const {
-      title,
-      description = '',
-      previewImg,
-    } = searchablePages[slug].frontMatter as PatternFrontMatter;
+  if (SEARCHABEL_SEO.patterns) {
+    patternSlugs.forEach((slug) => {
+      const {
+        title,
+        description = '',
+        previewImg,
+      } = searchablePages[slug].frontMatter as PatternFrontMatter;
 
-    results.push({
-      id: slugify(`pattern ${title}`),
-      category: 'patterns',
-      score: 0,
-      url: slug,
-      meta: {
-        patterns: {
-          title,
-          description,
-          previewImg,
+      results.push({
+        id: slugify(`pattern ${title}`),
+        category: 'patterns',
+        score: 0,
+        url: slug,
+        meta: {
+          patterns: {
+            title,
+            description,
+            previewImg,
+          },
         },
-      },
+      });
     });
-  });
+  }
 
   const fuse = new Fuse(results, {
     keys: [
       // Foundations
-      {name: 'meta.foundations.title', weight: 100},
-      {name: 'meta.foundations.description', weight: 50},
+      { name: 'meta.foundations.title', weight: 100 },
+      { name: 'meta.foundations.description', weight: 50 },
 
       // Patterns
-      {name: 'meta.patterns.title', weight: 100},
-      {name: 'meta.patterns.description', weight: 50},
+      { name: 'meta.patterns.title', weight: 100 },
+      { name: 'meta.patterns.description', weight: 50 },
 
       // Components
-      {name: 'meta.components.title', weight: 100},
-      {name: 'meta.components.description', weight: 50},
+      { name: 'meta.components.title', weight: 100 },
+      { name: 'meta.components.description', weight: 50 },
 
       // Tokens
-      {name: 'meta.tokens.token.name', weight: 200},
-      {name: 'meta.tokens.token.value', weight: 50},
+      { name: 'meta.tokens.token.name', weight: 200 },
+      { name: 'meta.tokens.token.value', weight: 50 },
 
       // Icons
-      {name: 'meta.icons.icon.fileName', weight: 50},
-      {name: 'meta.icons.icon.name', weight: 50},
-      {name: 'meta.icons.icon.keywords', weight: 20},
-      {name: 'meta.icons.icon.description', weight: 50},
+      { name: 'meta.icons.icon.fileName', weight: 50 },
+      { name: 'meta.icons.icon.name', weight: 50 },
+      { name: 'meta.icons.icon.keywords', weight: 20 },
+      { name: 'meta.icons.icon.description', weight: 50 },
     ],
     includeScore: true,
     threshold: 0.5,
@@ -237,7 +258,7 @@ const getSearchResults = (query?: string) => {
       category,
       results: scoredResults
         .filter((result) => result.category === category)
-        .map((result) => ({...result, score: result.score || 0}))
+        .map((result) => ({ ...result, score: result.score || 0 }))
         .slice(0, MAX_RESULTS[category]),
     });
   });
@@ -254,7 +275,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     ? req.query.q.join(' ')
     : req.query.q;
 
-  const results = {results: getSearchResults(query)};
+  const results = { results: getSearchResults(query) };
   res.status(200).json(results);
 };
 

@@ -7,31 +7,32 @@
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 0.5rem;
   margin-bottom: 1rem;
+}
 
-  button {
-    padding: 0.45rem 0.65rem;
-    text-align: left;
-    display: flex;
-    align-items: flex-start;
-    background: transparent;
-    box-shadow: var(--card-shadow);
-    border-radius: var(--border-radius-400);
-    font-size: var(--font-size-100);
-    font-weight: var(--font-weight-500);
-    line-height: 1.33;
-    color: var(--text-strong);
+.Button {
+  padding: 0.45rem 0.65rem;
+  text-align: left;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: transparent;
+  box-shadow: var(--card-shadow);
+  border-radius: var(--border-radius-400);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-500);
+  line-height: 1.33;
+  color: var(--text-strong);
 
-    &:hover {
-      box-shadow: var(--card-shadow-hover);
-    }
+  &:hover {
+    box-shadow: var(--card-shadow-hover);
+  }
 
-    &[aria-selected='true'] {
-      background: var(--surface-active);
-    }
+  &[aria-selected='true'] {
+    background: var(--surface-active);
+  }
 
-    &:focus {
-      box-shadow: var(--focus-outline);
-    }
+  &:focus {
+    box-shadow: var(--focus-outline);
   }
 }
 

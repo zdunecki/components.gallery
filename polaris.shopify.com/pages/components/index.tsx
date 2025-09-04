@@ -1,118 +1,225 @@
 import { useState } from "react";
+import { XIcon } from "@shopify/polaris-icons";
+import { Icon, ButtonGroup } from "@shopify/polaris";
+
 import { HeadingWithCopyButton } from "../../src/components/Markdown";
 import Page from "../../src/components/Page";
 import PageMeta from "../../src/components/PageMeta";
 import RichCardGrid from "../../src/components/RichCardGrid";
 import { Stack } from "../../src/components/Stack";
-import { Subnav2 } from "../../src/components/Subnav";
 import { posts } from "./posts";
+import ComponentExamples from "../../src/components/ComponentExamples";
+import ComboBox from "../../src/components/ComboBox";
+import { UI_ELEMENTS, TECHNOLOGIES } from "./const";
 
+// Create arrays from filter objects once, outside component
+const uiElementsFilterItems = Object.values(UI_ELEMENTS);
 
 export default function ComponentsGallery() {
+    const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+    const [technologyFilters, setTechnologyFilters] = useState<string[]>([]);
+
     return <>
-        <Page breadcrumbs={false} editPageLinkPath={"/components-gallery"} isContentPage showTOC={false}>
+        <Page breadcrumbs={false} feedbackUrl={false} isContentPage={true} showTOC={false} socialLinks={{
+            twitter: "https://twitter.com/zdunecki",
+            github: "https://github.com/livesession/awesome-components"
+        }}>
             <PageMeta title="Components Gallery" description="Reusable building blocks for creating Shopify admin experiences." />
 
             <Stack gap="800">
-                <_Filters />
-                <_Posts />
+                <_Filters
+                    selectedFilters={selectedFilters}
+                    setSelectedFilters={setSelectedFilters}
+                    technologyFilters={technologyFilters}
+                    setTechnologyFilters={setTechnologyFilters}
+                />
+                <_Posts selectedFilters={[...selectedFilters, ...technologyFilters]} />
             </Stack>
         </Page>
     </>
 }
 
-function _Posts() {
-    return posts.map((post) => (
+function _Posts({ selectedFilters }: { selectedFilters: string[] }) {
+    // If no filters selected, show all posts
+    if (selectedFilters.length === 0) {
+        return posts.map((post) => (
+            <>
+                <div>
+                    <HeadingWithCopyButton as="h1" >
+                        {post.title}
+                    </HeadingWithCopyButton>
+                </div>
+
+                <RichCardGrid cards={post.cards} />
+            </>
+        ));
+    }
+
+    const filteredCards = posts.flatMap(post =>
+        post.cards.filter(card => {
+            // Only filter based on card-level filters
+            if (card.filters && Array.isArray(card.filters)) {
+                const hasMatch = card.filters.some(filter => selectedFilters.includes(filter));
+                return hasMatch;
+            }
+            // If card has no filters, don't show it when filtering
+            return false;
+        })
+    );
+
+
+    if (filteredCards.length === 0) {
+        return (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+                <p>No components found matching the selected filters.</p>
+            </div>
+        );
+    }
+
+    // Group filtered cards by their post title
+    const groupedCards = filteredCards.reduce((acc, card) => {
+        // Find the post this card belongs to
+        const post = posts.find(p => p.cards.includes(card));
+        if (post) {
+            if (!acc[post.title]) {
+                acc[post.title] = [];
+            }
+            acc[post.title].push(card);
+        }
+        return acc;
+    }, {} as Record<string, typeof filteredCards>);
+
+    return Object.entries(groupedCards).map(([postTitle, cards]) => (
         <>
             <div>
                 <HeadingWithCopyButton as="h1" >
-                    {post.title}
+                    {postTitle}
                 </HeadingWithCopyButton>
             </div>
 
-            <RichCardGrid cards={post.cards} />
+            <RichCardGrid cards={cards} />
         </>
-    ))
+    ));
 }
 
-function _Filters() {
+function _Filters({
+    selectedFilters,
+    setSelectedFilters,
+    technologyFilters,
+    setTechnologyFilters
+}: {
+    selectedFilters: string[],
+    setSelectedFilters: (filters: string[]) => void,
+    technologyFilters: string[],
+    setTechnologyFilters: (filters: string[]) => void
+}) {
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
+
     const handleFilterClick = (filter: string) => {
         if (activeFilters.includes(filter)) {
             setActiveFilters((prevFilters) => prevFilters.filter((prevFilter) => prevFilter !== filter));
+            // Remove from technologyFilters for card filtering
+            setTechnologyFilters(technologyFilters.filter(f => f !== filter));
         } else {
             setActiveFilters((prevFilters) => [...prevFilters, filter]);
+            // Add to technologyFilters for card filtering
+            setTechnologyFilters([...technologyFilters, filter]);
         }
     };
 
     const filterItems = [
         {
-            id: 'react',
-            label: 'React',
+            id: TECHNOLOGIES.react,
+            label: TECHNOLOGIES.react,
             icon: IconReact,
             active: true,
-            onClick: () => handleFilterClick('react'),
+            onClick: () => handleFilterClick(TECHNOLOGIES.react),
         },
         {
-            id: 'vue',
-            label: 'Vue',
+            id: TECHNOLOGIES.vue,
+            label: TECHNOLOGIES.vue,
             icon: IconVue,
             active: true,
-            onClick: () => handleFilterClick('vue'),
+            onClick: () => handleFilterClick(TECHNOLOGIES.vue),
         },
         {
-            id: 'tailwind',
-            label: 'Tailwind',
+            id: TECHNOLOGIES.tailwind,
+            label: TECHNOLOGIES.tailwind,
             icon: IconTailwind,
             active: true,
-            onClick: () => handleFilterClick('tailwind'),
+            onClick: () => handleFilterClick(TECHNOLOGIES.tailwind),
         },
         {
-            id: 'open-source',
-            label: 'Open Source',
+            id: TECHNOLOGIES.openSource,
+            label: TECHNOLOGIES.openSource,
             icon: IconOpenSource,
             active: false,
-            onClick: () => handleFilterClick('open-source'),
+            onClick: () => handleFilterClick(TECHNOLOGIES.openSource),
         },
         {
-            id: 'paid',
-            label: 'Paid',
+            id: TECHNOLOGIES.paid,
+            label: TECHNOLOGIES.paid,
             icon: IconPaid,
             active: false,
-            onClick: () => handleFilterClick('paid'),
+            onClick: () => handleFilterClick(TECHNOLOGIES.paid),
         },
         {
-            id: 'storybook',
-            label: 'Storybook',
+            id: TECHNOLOGIES.storybook,
+            label: TECHNOLOGIES.storybook,
             icon: IconStorybook,
             active: false,
-            onClick: () => handleFilterClick('storybook'),
+            onClick: () => handleFilterClick(TECHNOLOGIES.storybook),
         },
     ];
+
 
     return (
         <div style={{
             position: 'sticky',
             top: 'var(--header-height)',
             zIndex: 999,
-            background: 'var(--surface)'
+            background: 'var(--surface)',
+            padding: "8px 0px"
         }}>
             <HeadingWithCopyButton as="h2">
                 Filters
             </HeadingWithCopyButton>
 
-            <Subnav2>
+            <ButtonGroup>
                 {filterItems.map((item) => (
-                    <Subnav2.Item
-                        key={item.id}
-                        active={activeFilters.includes(item.id)}
-                        icon={item.icon}
-                        onClick={item.onClick}
-                    >
-                        {item.label}
-                    </Subnav2.Item>
+                    <ComponentExamples.Button onClick={item.onClick} key={item.id} aria-selected={activeFilters.includes(item.id)}>
+                        <Icon source={item.icon} />
+                        <div>
+                            {item.label}
+                        </div>
+                    </ComponentExamples.Button>
                 ))}
-            </Subnav2>
+                <ComboBox
+                    options={uiElementsFilterItems.map(item => ({
+                        value: item,
+                        label: item
+                    }))}
+                    selectedOptions={selectedFilters}
+                    onSelectionChange={(selected) => {
+                        console.log('Selected:', selected);
+                        setSelectedFilters(selected);
+                    }}
+                    placeholder="Search components"
+                    label="Search components"
+                    trigger={
+                        <ComponentExamples.Button>
+                            <div>UI elements ({selectedFilters.length} selected)</div>
+                            <div onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedFilters([]);
+                            }}>
+                                <Icon source={XIcon} />
+                            </div>
+                        </ComponentExamples.Button>
+                    }
+                />
+            </ButtonGroup>
+
         </div>
     );
 }

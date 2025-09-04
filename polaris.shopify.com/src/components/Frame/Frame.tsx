@@ -17,6 +17,7 @@ import { ArrowRightIcon, LockIcon } from '@shopify/polaris-icons';
 import icons from '../../icons';
 import Button from '../Button';
 import { ButtonGroup } from '@shopify/polaris';
+import ComponentExamples from '../ComponentExamples';
 
 const NAV_ID = 'nav';
 interface Props {
@@ -94,6 +95,8 @@ function Frame({ darkMode, children }: Props) {
     }
   };
 
+  const hasNav = nav && "children" in nav && nav.children.length > 0;
+
   return (
     <>
       {/* <div className={styles.PolarisUnifiedCta}>
@@ -114,22 +117,24 @@ function Frame({ darkMode, children }: Props) {
           </a>
         )}
 
-        <button
-          id="menu-button"
-          aria-label="Open menu"
-          aria-controls={NAV_ID}
-          aria-expanded={navIsVisible}
-          onClick={() => setNavIsVisible(true)}
-          ref={menuButtonRef}
-          className={styles.NavToggle}
-        >
-          <NavToggleIcon />
-        </button>
+        {
+          <button
+            id="menu-button"
+            aria-label="Open menu"
+            aria-controls={NAV_ID}
+            aria-expanded={navIsVisible}
+            onClick={() => setNavIsVisible(true)}
+            ref={menuButtonRef}
+            className={styles.NavToggle}
+          >
+            <NavToggleIcon />
+          </button>
+        }
 
         <Link href="/" className={styles.Logo}>
           <Image
-            alt="Shopify logo"
-            src="/images/shopify-logo.svg"
+            alt="components.gallery logo"
+            src="/images/components-gallery-logo.svg"
             width={24}
             height={24}
           />
@@ -147,7 +152,16 @@ function Frame({ darkMode, children }: Props) {
           </ButtonGroup>
         </div> */}
 
-        {isMounted && (
+        {/* <ButtonGroup>
+          <ComponentExamples.Button>
+            Components
+          </ComponentExamples.Button>
+          <ComponentExamples.Button>
+            Patterns
+          </ComponentExamples.Button>
+        </ButtonGroup> */}
+
+        {hasNav && (
           <button className={styles.DarkModeToggle} onClick={darkMode.toggle}>
             {darkMode.value ? (
               <span className={styles.LightModeIcon}>💡</span>
@@ -161,28 +175,30 @@ function Frame({ darkMode, children }: Props) {
       </div>
 
       <div className={styles.NavAndContent}>
-        <nav
-          className={className(styles.Nav, navIsVisible && styles.isVisible)}
-          id={NAV_ID}
-        >
-          <ul>
-            <NavItem
-              nav={nav}
-              level={0}
-              handleLinkClick={() => setNavIsVisible(false)}
-              handleShiftTabOnFirstLink={handleShiftTabPress}
-            />
-          </ul>
-          <button
-            ref={closeButtonRef}
-            aria-label="Close menu"
-            className={styles.CloseButton}
-            onClick={handleCloseMenu}
-            onKeyDown={handleCloseButtonKeyDown}
+        {
+          hasNav && <nav
+            className={className(styles.Nav, navIsVisible && styles.isVisible)}
+            id={NAV_ID}
           >
-            <CloseIcon />
-          </button>
-        </nav>
+            <ul>
+              <NavItem
+                nav={nav}
+                level={0}
+                handleLinkClick={() => setNavIsVisible(false)}
+                handleShiftTabOnFirstLink={handleShiftTabPress}
+              />
+            </ul>
+            <button
+              ref={closeButtonRef}
+              aria-label="Close menu"
+              className={styles.CloseButton}
+              onClick={handleCloseMenu}
+              onKeyDown={handleCloseButtonKeyDown}
+            >
+              <CloseIcon />
+            </button>
+          </nav>
+        }
         <div className={styles.PageContent}>{children}</div>
       </div>
     </>

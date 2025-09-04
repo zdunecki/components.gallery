@@ -1,13 +1,13 @@
-import {useEffect, useState, useRef} from 'react';
-import type {SerializedMdx} from '../../types';
+import { useEffect, useState, useRef } from 'react';
+import type { SerializedMdx } from '../../types';
 import styles from './ComponentExamples.module.scss';
 import CodesandboxButton from '../CodesandboxButton';
-import {className as classNames} from '../../utils/various';
+import { className as classNames } from '../../utils/various';
 import Code from '../Code';
-import {className} from '../../utils/various';
+import { className } from '../../utils/various';
 import Markdown from '../Markdown';
-import {useRouter} from 'next/router';
-import {useSearchParams} from 'next/navigation';
+import { useRouter } from 'next/router';
+import { useSearchParams } from 'next/navigation';
 
 const exampleIframeId = 'example-iframe';
 const iframePadding = 192;
@@ -51,7 +51,7 @@ function formatHTML(html: string): string {
   return result.substring(1, result.length - 3);
 }
 
-const ComponentExamples = ({examples, componentTitle}: Props) => {
+const ComponentExamples = ({ examples, componentTitle }: Props) => {
   const [htmlCode, setHTMLCode] = useState('');
   const [iframeHeight, setIframeHeight] = useState(400);
   const router = useRouter();
@@ -106,10 +106,10 @@ const ComponentExamples = ({examples, componentTitle}: Props) => {
     router.replace(
       {
         pathname: router.pathname,
-        query: {...router.query, example: exampleName},
+        query: { ...router.query, example: exampleName },
       },
       undefined,
-      {shallow: true},
+      { shallow: true },
     );
   };
 
@@ -179,7 +179,7 @@ const ComponentExamples = ({examples, componentTitle}: Props) => {
 
   const tabButtons = examples.map((example, index) => {
     return (
-      <button
+      <ComponentExamples.Button
         role="tab"
         type="button"
         id={`tab-${index}`}
@@ -190,13 +190,15 @@ const ComponentExamples = ({examples, componentTitle}: Props) => {
         ref={(el) => (buttonRefs.current[index] = el)}
         aria-selected={index === exampleIndex}
       >
-        <span>{example.title}</span>
-      </button>
+        <span>
+          {example.title}
+        </span>
+      </ComponentExamples.Button>
     );
   });
 
   const examplesMarkup = examples.map(
-    ({fileName, description, code}, index) => {
+    ({ fileName, description, code }, index) => {
       const exampleUrl = `/examples/${fileName.replace('.tsx', '')}`;
       const isSelected = index === exampleIndex ? true : false;
       const classes = classNames(
@@ -231,8 +233,8 @@ const ComponentExamples = ({examples, componentTitle}: Props) => {
 
           <Code
             code={[
-              {title: 'React', code: code.trim()},
-              {title: 'HTML', code: htmlCode},
+              { title: 'React', code: code.trim() },
+              { title: 'HTML', code: htmlCode },
             ]}
           />
         </div>
@@ -259,4 +261,12 @@ const ComponentExamples = ({examples, componentTitle}: Props) => {
   );
 };
 
+ComponentExamples.Button = function ComponentExamplesButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return <button
+    {...props}
+    className={styles.Button}
+  >
+    {props.children}
+  </button>
+}
 export default ComponentExamples;

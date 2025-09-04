@@ -1,10 +1,10 @@
-import {Grid, GridItem} from '../Grid';
+import { Grid, GridItem } from '../Grid';
 import Preview from '../ThumbnailPreview';
 import FoundationsThumbnail from '../FoundationsThumbnail';
-import type {Status, FoundationsCategory} from '../../types';
+import type { Status, FoundationsCategory } from '../../types';
 
 export interface RichCardGridProps {
-  title: string;
+  title: string | React.ReactNode;
   description: string;
   shortDescription?: string;
   /* url is usually derived from the file path, but can be overwritten here */
@@ -15,6 +15,7 @@ export interface RichCardGridProps {
   icon?: string;
   featured?: boolean;
   hideFromNav?: boolean;
+  filters?: string[];
 }
 
 function RichCardGrid({
@@ -29,7 +30,7 @@ function RichCardGrid({
   return (
     <Grid>
       {cards
-        .filter(({draft}) => !draft)
+        .filter(({ draft }) => !draft)
         .filter((card) =>
           includeHiddenItems === true ? true : !card.hideFromNav,
         )

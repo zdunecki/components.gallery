@@ -6,16 +6,16 @@ import type {
 import Link from 'next/link';
 import fs from 'fs';
 import globby from 'globby';
-import {metaThemeDefault as tokenGroups} from '@shopify/polaris-tokens';
+import { metaThemeDefault as tokenGroups } from '@shopify/polaris-tokens';
 import mapValues from 'lodash.mapvalues';
 
-import {serializeMdx} from '../src/components/Markdown/serialize';
+import { serializeMdx } from '../src/components/Markdown/serialize';
 import Markdown from '../src/components/Markdown';
 import Page from '../src/components/Page';
 import PageMeta from '../src/components/PageMeta';
-import type {SerializedMdx} from '../src/types';
-import {FrontMatter} from '../src/types';
-import type {RichCardGridProps} from '../src/components/RichCardGrid';
+import type { SerializedMdx } from '../src/types';
+import { FrontMatter } from '../src/types';
+import type { RichCardGridProps } from '../src/components/RichCardGrid';
 
 interface Props {
   mdx: SerializedMdx<FrontMatter>;
@@ -30,7 +30,7 @@ interface SortedRichCardGridProps extends RichCardGridProps {
   order: number;
 }
 
-function StylelintResourceLink({category}: {category: string}): JSX.Element {
+function StylelintResourceLink({ category }: { category: string }): JSX.Element {
   return (
     {
       border: (
@@ -93,7 +93,7 @@ const CatchAllTemplate = ({
   showTOC,
   collapsibleTOC,
 }: InferGetStaticPropsType<typeof getStaticProps>) => {
-  const {title, noIndex = false} = mdx.frontmatter;
+  const { title, noIndex = false } = mdx?.frontmatter || {};
 
   return (
     <Page
@@ -107,7 +107,7 @@ const CatchAllTemplate = ({
         {...mdx}
         components={{
           // @ts-expect-error Dunno how to narrow this type any further ¯\_(ツ)_/¯
-          PresentTenseVerb: ({children}: {children: string}) =>
+          PresentTenseVerb: ({ children }: { children: string }) =>
             `${children.slice(-1) === 's' ? 'are' : 'is'}`,
           StylelintResourceLink,
         }}
@@ -143,7 +143,7 @@ function makeSerializable<T extends Record<string, any> = Record<string, any>>(
 const getRichCards = async (
   pathGlob: string,
 ): Promise<SortedRichCardGridProps[]> => {
-  const markdownFiles = globby.sync(pathGlob, {onlyFiles: true});
+  const markdownFiles = globby.sync(pathGlob, { onlyFiles: true });
 
   return (
     (
@@ -152,7 +152,7 @@ const getRichCards = async (
           async (markdownFilePath): Promise<SortedRichCardGridProps> => {
             // NOTE: `markdownFilePath` will be in posix format from globby (fast-glob internally)
             const mdAbsolutePath = [process.cwd(), markdownFilePath].join('/');
-            const [{frontmatter}, data] = await serializeMdx<FrontMatter>(
+            const [{ frontmatter }, data] = await serializeMdx<FrontMatter>(
               mdAbsolutePath,
               {
                 load: (filePath) => fs.readFileSync(filePath, 'utf-8'),
@@ -179,7 +179,7 @@ const getRichCards = async (
       )
     )
       // Don't show 'draft' posts in prod/staging, but show them everywhere else
-      .filter(({draft}) => process.env.NODE_ENV !== 'production' || !draft)
+      .filter(({ draft }) => process.env.NODE_ENV !== 'production' || !draft)
       .sort(
         (a, b) =>
           // Sort by defined order first
@@ -219,7 +219,7 @@ const middleware = async (wares: Middleware[]) => {
   }
 };
 
-export const getStaticProps: GetStaticProps<Props, {slug: string[]}> = async ({
+export const getStaticProps: GetStaticProps<Props, { slug: string[] }> = async ({
   params,
 }) => {
   const slug = params?.slug;
@@ -240,7 +240,7 @@ export const getStaticProps: GetStaticProps<Props, {slug: string[]}> = async ({
   if (!fs.existsSync(mdRelativePath)) {
     mdRelativePath = `${slugPath}/index.mdx`;
     if (!fs.existsSync(mdRelativePath)) {
-      return {notFound: true};
+      return { notFound: true };
     }
     pathIsDirectory = true;
   }
@@ -317,7 +317,7 @@ export const getStaticProps: GetStaticProps<Props, {slug: string[]}> = async ({
       async (end) => {
         // Flatten each group to an array of objects
         const tokenGroupObjects = mapValues(tokenGroups, (tokens) =>
-          Object.entries(tokens).map(([name, value]) => ({name, ...value})),
+          Object.entries(tokens).map(([name, value]) => ({ name, ...value })),
         );
         scope.tokens = tokenGroupObjects;
         end();
@@ -354,7 +354,7 @@ export const getStaticProps: GetStaticProps<Props, {slug: string[]}> = async ({
     collapsibleTOC: mdx.frontmatter.collapsibleTOC || false,
   };
 
-  return {props};
+  return { props };
 };
 
 const catchAllTemplateExcludeList = [
