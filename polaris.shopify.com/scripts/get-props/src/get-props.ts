@@ -318,9 +318,9 @@ export function getRelevantTypes(
     return {};
   }
 
-  let matchingNode = ast[name][filePath];
+  let matchingNode = ast[name]?.[filePath];
 
-  if (!matchingNode) {
+  if (!matchingNode && ast[name]) {
     matchingNode = Object.values(ast[name])[0];
   }
 

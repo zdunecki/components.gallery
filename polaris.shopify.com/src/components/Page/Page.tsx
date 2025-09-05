@@ -28,6 +28,7 @@ interface Props {
     twitter?: string;
     github?: string;
   }
+  fullWidth?: boolean;
 }
 
 function Layout({
@@ -39,7 +40,8 @@ function Layout({
   children,
   breadcrumbs = true,
   feedbackUrl,
-  socialLinks
+  socialLinks,
+  fullWidth
 }: Props) {
   const [tocItems] = useTOC(children);
   const { asPath } = useRouter();
@@ -55,7 +57,7 @@ function Layout({
   const componentTitle = toPascalCase(asPath.split('/').pop() ?? '');
 
   return (
-    <Container className={className(styles.Page, showTOC && styles.showTOC)}>
+    <Container className={className(styles.Page, showTOC && styles.showTOC)} fullWidth={fullWidth}>
       <Box
         as="article"
         className={[styles.Post, isContentPage && styles.PostContent]}

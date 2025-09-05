@@ -6,18 +6,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import GlobalSearch from '../GlobalSearch';
 import nav from '../../../.cache/nav';
-import { NavItem, Breakpoints } from '../../types';
+import type { NavItem } from '../../types';
+import { Breakpoints } from '../../types';
 
 import styles from './Frame.module.scss';
 import { className } from '../../utils/various';
 import { useRouter } from 'next/router';
 import StatusBadge from '../StatusBadge';
 import Icon from '../Icon';
-import { ArrowRightIcon, LockIcon } from '@shopify/polaris-icons';
-import icons from '../../icons';
-import Button from '../Button';
-import { ButtonGroup } from '@shopify/polaris';
-import ComponentExamples from '../ComponentExamples';
+import { LockIcon } from '@shopify/polaris-icons';
 
 const NAV_ID = 'nav';
 interface Props {
@@ -31,9 +28,6 @@ function Frame({ darkMode, children }: Props) {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const { asPath } = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => setIsMounted(true), []);
 
   useEffect(() => {
     const mainContent = document.querySelector('#main');
@@ -95,7 +89,9 @@ function Frame({ darkMode, children }: Props) {
     }
   };
 
-  const hasNav = nav && "children" in nav && nav.children.length > 0;
+  const currentNavSection = getNavSectionFromRoute(asPath);
+
+  let hasNav = currentNavSection && nav && "children" in nav && nav.children && Object.keys(nav.children).length > 0;
 
   return (
     <>
@@ -134,7 +130,7 @@ function Frame({ darkMode, children }: Props) {
         <Link href="/" className={styles.Logo}>
           <Image
             alt="components.gallery logo"
-            src="/images/components-gallery-logo.svg"
+            src="/images/logo.svg"
             width={24}
             height={24}
           />
@@ -231,11 +227,48 @@ function NavItem({
 
   useEffect(() => setManuallyExpandedSections({}), [asPath]);
 
+  // Get the current app navigation content
+  const getCurrentAppNavContent = (path: string) => {
+    const segments = path.split('/').filter(Boolean);
+
+    // If we're in an app route (/apps/openai/...), show the app and its children
+    if (segments.length >= 2 && segments[0] === 'apps') {
+      const appId = segments[1];
+      const appsSection = nav.children?.['apps'];
+      const currentApp = appsSection?.children?.[appId];
+
+      if (currentApp) {
+        // Create a navigation structure that includes the app itself and its children
+        return {
+          ...currentApp,
+          children: {
+            // Add the app itself as the first item
+            [appId]: {
+              ...currentApp,
+              title: currentApp.title,
+              slug: currentApp.slug
+            },
+            // Add all the app's children
+            ...currentApp.children
+          }
+        };
+      }
+    }
+
+    // Fallback to section-level navigation
+    const currentNavSection = getNavSectionFromRoute(path);
+    return currentNavSection && nav.children?.[currentNavSection]
+      ? nav.children[currentNavSection]
+      : nav.children;
+  };
+
+  const navContent = getCurrentAppNavContent(asPath);
+
   return (
     <>
-      {nav.children &&
-        !nav.hideFromNav &&
-        Object.entries(nav.children)
+      {navContent?.children &&
+        !navContent.hideFromNav &&
+        Object.entries(navContent.children)
           .filter(([, child]) => !child.hideFromNav)
           .sort((_a, _b) => {
             const [, a] = _a as [string, NavItem];
@@ -253,6 +286,7 @@ function NavItem({
           .map((entry, i) => {
             const [key, child] = entry as [string, NavItem];
 
+            console.log(777777, child)
             if (!child.slug) return null;
 
             const isExpandable =
@@ -273,6 +307,7 @@ function NavItem({
             const removeParams = (path: string) => path.replace(/\?.+$/gi, '');
             const isCurrent = removeParams(asPath) === child.slug;
 
+            console.log(9999999992222)
             return (
               <li
                 key={child.slug}
@@ -365,5 +400,11 @@ function NavToggleIcon() {
     </svg>
   );
 }
+
+// Determine nav section based on current route
+const getNavSectionFromRoute = (path: string) => {
+  const segments = path.split('/').filter(Boolean);
+  return segments[0] || null;
+};
 
 export default Frame;

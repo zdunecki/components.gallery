@@ -16,4 +16,8 @@
   @media screen and (max-width: $breakpointTablet) {
     padding: 0 1.25rem;
   }
+
+  .fullWidth {
+    max-width: 100%;
+  }
 }

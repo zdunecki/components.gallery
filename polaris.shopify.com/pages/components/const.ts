@@ -88,17 +88,17 @@ interface Project {
     logoAlt: string;
 }
 
-export const PROJECTS: Record<string, Project> = {
+export const APPS: Record<string, Project> = {
     magicui: {
         title: "magicui",
         website: "https://magicui.design",
-        logo: "/images/brand-logos/magicui.png",
+        logo: "/images/projects/magicui/logo.png",
         logoAlt: "MagicUI logo",
     },
     openai: {
         title: "OpenAI",
         website: "https://openai.com",
-        logo: "/images/brand-logos/openai.png",
+        logo: "/images/projects/openai/logo.png",
         logoAlt: "OpenAI logo",
     },
 };

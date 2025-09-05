@@ -20,10 +20,16 @@ export default function ComponentsGallery() {
     const [technologyFilters, setTechnologyFilters] = useState<string[]>([]);
 
     return <>
-        <Page breadcrumbs={false} feedbackUrl={false} isContentPage={true} showTOC={false} socialLinks={{
-            twitter: "https://twitter.com/zdunecki",
-            github: "https://github.com/livesession/awesome-components"
-        }}>
+        <Page
+            fullWidth
+            breadcrumbs={false}
+            feedbackUrl={false}
+            isContentPage={true}
+            showTOC={false}
+            socialLinks={{
+                twitter: "https://twitter.com/zdunecki",
+                github: "https://github.com/livesession/awesome-components"
+            }}>
             <PageMeta title="Components Gallery" description="Reusable building blocks for creating Shopify admin experiences." />
 
             <Stack gap="800">
@@ -42,33 +48,20 @@ export default function ComponentsGallery() {
 function _Posts({ selectedFilters }: { selectedFilters: string[] }) {
     // If no filters selected, show all posts
     if (selectedFilters.length === 0) {
-        return posts.map((post) => (
-            <>
-                <div>
-                    <HeadingWithCopyButton as="h1" >
-                        {post.title}
-                    </HeadingWithCopyButton>
-                </div>
-
-                <RichCardGrid cards={post.cards} />
-            </>
-        ));
+        return <RichCardGrid cards={posts} />;
     }
 
-    const filteredCards = posts.flatMap(post =>
-        post.cards.filter(card => {
-            // Only filter based on card-level filters
-            if (card.filters && Array.isArray(card.filters)) {
-                const hasMatch = card.filters.some(filter => selectedFilters.includes(filter));
-                return hasMatch;
-            }
-            // If card has no filters, don't show it when filtering
-            return false;
-        })
-    );
+    const filteredPosts = posts.filter(post => {
+        // Check if post has any matching filters
+        if (post.filters && Array.isArray(post.filters)) {
+            const hasMatch = post.filters.some(filter => selectedFilters.includes(filter));
+            return hasMatch;
+        }
+        // If post has no filters, don't show it when filtering
+        return false;
+    });
 
-
-    if (filteredCards.length === 0) {
+    if (filteredPosts.length === 0) {
         return (
             <div style={{ textAlign: 'center', padding: '40px' }}>
                 <p>No components found matching the selected filters.</p>
@@ -76,30 +69,8 @@ function _Posts({ selectedFilters }: { selectedFilters: string[] }) {
         );
     }
 
-    // Group filtered cards by their post title
-    const groupedCards = filteredCards.reduce((acc, card) => {
-        // Find the post this card belongs to
-        const post = posts.find(p => p.cards.includes(card));
-        if (post) {
-            if (!acc[post.title]) {
-                acc[post.title] = [];
-            }
-            acc[post.title].push(card);
-        }
-        return acc;
-    }, {} as Record<string, typeof filteredCards>);
-
-    return Object.entries(groupedCards).map(([postTitle, cards]) => (
-        <>
-            <div>
-                <HeadingWithCopyButton as="h1" >
-                    {postTitle}
-                </HeadingWithCopyButton>
-            </div>
-
-            <RichCardGrid cards={cards} />
-        </>
-    ));
+    // Show all filtered posts in a single grid
+    return <RichCardGrid cards={filteredPosts} />;
 }
 
 function _Filters({
